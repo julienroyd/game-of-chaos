@@ -7,7 +7,7 @@ import numpy as np
 
 class ChaosWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, init_points):
         super().__init__()
 
         # setting title
@@ -22,8 +22,9 @@ class ChaosWindow(QMainWindow):
         # setting icon to the window
         self.setWindowIcon(icon)
 
-        # calling method
-        self.scatter = self.init_plot(init_points=np.array([[0., 1.], [-1., 0.,], [1., 0.]]).T)
+        # initialising plot
+        self.init_points = init_points
+        self.scatter = self.init_plot(init_points=self.init_points)
 
         # TODO: replace that with loop and logic for chaos game
         self.scatter.addPoints([{'pos': [0., 0.5], 'data': 1}])
@@ -49,7 +50,7 @@ class ChaosWindow(QMainWindow):
         scatter = pg.ScatterPlotItem(size=10, brush=pg.mkBrush(0, 255, 0, 255))
 
         # adding points to the scatter plot
-        points = [{'pos': init_points[:, i], 'data': 1} for i in range(len(init_points.T))]
+        points = [{'pos': init_points[i, :], 'data': 1} for i in range(len(init_points))]
 
         scatter.addPoints(points)
         plot.addItem(scatter)
