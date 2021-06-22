@@ -32,8 +32,8 @@ class ChaosWindow(QMainWindow):
         # initialising plot
         self.init_plot(init_points=self.init_points)
 
-        # # start the display timer
-        # self.displayTimer.start(self.freq)
+        # start the display timer
+        self.displayTimer.start(self.freq)
 
     def set_up_gui(self):
         # setting title
