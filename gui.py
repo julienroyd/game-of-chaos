@@ -19,6 +19,7 @@ class ChaosWindow(QMainWindow):
         super().__init__()
 
         self.freq = 1000 // speed
+        self.label_text = start_shape
         self.init_points = INIT_POINTS_COLLECTION[start_shape]
         self.last_point = self.init_points[0]
         self.n_points = 0
@@ -82,7 +83,7 @@ class ChaosWindow(QMainWindow):
 
     def init_plot(self, init_points):
         # setting text to inital shape title
-        self.label.setText("Triangle start")
+        self.label.setText(self.label_text)
 
         # adding points to the scatter plot
         self.scatter.clear()
