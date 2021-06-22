@@ -1,6 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QLabel, QWidget, QGridLayout
+from chaos import sample_point
 
 import pyqtgraph as pg
 import numpy as np
@@ -14,11 +15,12 @@ INIT_POINTS_COLLECTION = {
 
 class ChaosWindow(QMainWindow):
 
-    def __init__(self, start_shape="triangle", n_new_points=10000, speed=10):
+    def __init__(self, start_shape="triangle", n_new_points=10000, speed=1000):
         super().__init__()
 
         self.freq = 1000 // speed
         self.init_points = INIT_POINTS_COLLECTION[start_shape]
+        self.last_point = self.init_points[0]
         self.n_points = 0
         self.n_new_points = n_new_points
 
@@ -30,7 +32,7 @@ class ChaosWindow(QMainWindow):
         self.set_up_gui()
 
         # initialising plot
-        self.init_plot(init_points=self.init_points)
+        self.init_plot(init_points=np.concatenate([self.init_points, np.expand_dims(self.last_point, axis=0)], axis=0))
 
         # start the display timer
         self.displayTimer.start(self.freq)
@@ -60,7 +62,7 @@ class ChaosWindow(QMainWindow):
         self.plot.getPlotItem().hideAxis('bottom')
 
         # creating a scatter plot item
-        self.scatter = pg.ScatterPlotItem(size=10, brush=pg.mkBrush(0, 255, 0, 255))
+        self.scatter = pg.ScatterPlotItem(size=4, brush=pg.mkBrush(0, 255, 0, 255))
         self.plot.addItem(self.scatter)
         self.plot.setXRange(-1., 1., padding=0.2)
         self.plot.setYRange(-1., 1., padding=0.2)
@@ -89,7 +91,8 @@ class ChaosWindow(QMainWindow):
         self.scatter.addPoints(points)
 
     def update_plot(self):
-        new_point = np.random.uniform(low=-1., high=1., size=(2,))  # TODO: replace that with loop and logic for chaos game
+        new_point = sample_point(init_points=self.init_points, last_point=self.last_point)
+        self.last_point = new_point
         self.scatter.addPoints([{'pos': new_point, 'data': 1}])
         self.n_points += 1
 
