@@ -1,6 +1,6 @@
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QWidget, QGridLayout
+from PyQt5.QtWidgets import QMainWindow, QLabel, QWidget, QGridLayout, QSlider
 from chaos import sample_point
 
 import pyqtgraph as pg
@@ -12,22 +12,23 @@ INIT_POINTS_COLLECTION = {
     "diamond": np.array([[-1., 0.], [1., 0., ], [0., 1.], [0., -1.]]),
 }
 
+UPDATE_FREQS = [1000000000, 2500, 1000, 500, 100, 10]
+
 
 class ChaosWindow(QMainWindow):
 
-    def __init__(self, start_shape="triangle", n_new_points=10000, speed=1000):
+    def __init__(self, start_shape="triangle", n_new_points=10000):
         super().__init__()
 
-        self.freq = 1000 // speed
         self.label_text = start_shape
+
         self.init_points = INIT_POINTS_COLLECTION[start_shape]
         self.last_point = self.init_points[0]
-        self.n_points = 0
-        self.n_new_points = n_new_points
 
         # Add Timer for displaying and saving data
         self.displayTimer = QtCore.QTimer()
         self.displayTimer.timeout.connect(self.update_plot)
+        self.displayTimer.start(100000000)
 
         # Setting up the graphical user interface
         self.set_up_gui()
@@ -35,8 +36,8 @@ class ChaosWindow(QMainWindow):
         # initialising plot
         self.init_plot(init_points=np.concatenate([self.init_points, np.expand_dims(self.last_point, axis=0)], axis=0))
 
-        # start the display timer
-        self.displayTimer.start(self.freq)
+        # starts timer
+        self.freq_changed()
 
     def set_up_gui(self):
         # setting title
@@ -57,6 +58,13 @@ class ChaosWindow(QMainWindow):
         self.label.setWordWrap(True)
         self.label.setMinimumWidth(130)
 
+        # creating a slider to control drawing frequency
+        self.slider = QSlider(QtCore.Qt.Horizontal)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(len(UPDATE_FREQS))
+        self.slider.setValue(0)
+        self.slider.valueChanged.connect(self.freq_changed)
+
         # creating a plot window
         self.plot = pg.plot()
         self.plot.getPlotItem().hideAxis('left')
@@ -73,6 +81,7 @@ class ChaosWindow(QMainWindow):
         self.central_widget.setLayout(self.layout)
 
         self.layout.addWidget(self.label, 1, 0)
+        self.layout.addWidget(self.slider, 2, 0)
         self.layout.addWidget(self.plot, 0, 1, 3, 1)
 
         # setting this widget as central widget of the main widow
@@ -95,6 +104,8 @@ class ChaosWindow(QMainWindow):
         new_point = sample_point(init_points=self.init_points, last_point=self.last_point)
         self.last_point = new_point
         self.scatter.addPoints([{'pos': new_point, 'data': 1}])
-        self.n_points += 1
 
-        return
+    def freq_changed(self):
+        self.freq = int(UPDATE_FREQS[self.slider.value()])
+        self.displayTimer.setInterval(self.freq)
+
